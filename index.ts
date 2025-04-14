@@ -326,7 +326,7 @@
     context.response = await fetch(upstreamRequest);
     if (onResponse) {
 
-      
+
       let original_response_clone = context.response.clone();
       let response_headers = context.response.headers;
       let url_hostname = url.hostname;
@@ -334,9 +334,9 @@
       let new_response_headers = new Headers(response_headers);
       const content_type = new_response_headers.get('content-type');
 
-      if (content_type.includes('application/json')){
+      if (content_type.includes('application/json')) {
         original_text = await replace_response_text(original_response_clone, upstream, url_hostname);
-      }else{
+      } else {
         original_text = original_response_clone.body;
       }
       const newResponse = new Response(original_text, context.response);
@@ -369,19 +369,19 @@
     let text = await response.text()
     var i, j;
     for (i in replace_dict) {
-        j = replace_dict[i]
-        if (i == '$upstream') {
-            i = upstream_domain
-        } else if (i == '$custom_domain') {
-            i = host_name
-        }
-        if (j == '$upstream') {
-            j = upstream_domain
-        } else if (j == '$custom_domain') {
-            j = host_name
-        }
-        let re = new RegExp(i, 'g')
-        text = text.replace(re, j);
+      j = replace_dict[i]
+      if (i == '$upstream') {
+        i = upstream_domain
+      } else if (i == '$custom_domain') {
+        i = host_name
+      }
+      if (j == '$upstream') {
+        j = upstream_domain
+      } else if (j == '$custom_domain') {
+        j = host_name
+      }
+      let re = new RegExp(i, 'g')
+      text = text.replace(re, j);
     }
     return text;
   }
@@ -498,6 +498,21 @@
       upstream: {
         domain: "scholar.google.com",
         protocol: "https",
+        onRequest: (request, url) => {
+          const headers = new Headers(request.headers);
+
+          // 设置常见的浏览器 User-Agent
+          headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+          // 移除可能暴露代理的头
+          headers.delete("cf-connecting-ip");
+          headers.delete("X-Forwarded-For");
+
+          return new Request(url, {
+            ...request,
+            headers,
+          });
+        },
         onResponse: (response, url) => {
           return response;
         }
